@@ -1,9 +1,15 @@
 #include <stdio.h>
 #include <sys/types.h>
+#include <stdlib.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
+#include <string.h>
 #include <openssl/ssl.h>
 
 int TCPSock;
+SSL *ssl;
 
 void die(char *msg) {
 	puts(msg);
@@ -15,7 +21,7 @@ void ssl_init() {
 	SSL_library_init();
 	
 	SSL_CTX *sslctx = SSL_CTX_new(TLSv1_client_method());
-	SSL *ssl SSL_new(sslctx);
+	ssl = SSL_new(sslctx);
 	SSL_set_fd(ssl, TCPSock);
 	if (SSL_connect(ssl) <= 0) {
 		die("SSL_connect failed");
@@ -43,11 +49,22 @@ int _connect(char* addr, int port) {
 		// can't connect
 		return 0;
 	}
+
 	return sock;
 }
 
 int main(int argc, char* argv[]) {
-	TCPSock = _connect(,);
+	if (argc < 4) {
+		die("Usage: clumble <server> <port> <username>\n");
+	}
+	TCPSock = _connect(argv[1], atoi(argv[2]));
+	printf("sock=%i\n", TCPSock);
 	ssl_init();
+	char buf[1000];
+	while (1) {
+		gets(buf);
+		SSL_write(ssl, buf, strlen(buf));
+		SSL_read(ssl, buf, 1000);
+	}
 	return 0;
 }
